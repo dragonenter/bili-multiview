@@ -18,7 +18,7 @@ function resolutionTier(w, h) {
 
 class Player {
     constructor(roomInput, initialQn = 250) {
-        this.roomInput = roomInput;      // 原始输入（链接或数字）
+        this.roomInput = roomInput;
         this.qn = initialQn;
         this.realRoomId = null;
         this.title = "";
@@ -29,7 +29,11 @@ class Player {
         this.label = null;
         this.qnBadge = null;
         this.resBadge = null;
-        this.onClick = null;             // 由 app.js 注入
+        this.muteBadge = null;
+        this.onClick = null;
+        this._reconnectCount = 0;
+        this._reconnectTimer = null;
+        this._destroyed = false;
     }
 
     mount(container) {
@@ -44,6 +48,7 @@ class Player {
         this.videoEl.playsInline = true;
         this.videoEl.addEventListener("playing", () => {
             if (this.container) this.container.classList.remove("is-loading");
+            this._reconnectCount = 0;  // 重置重连计数
         });
         this.videoEl.addEventListener("loadedmetadata", () => this._updateResolution());
         this.videoEl.addEventListener("resize", () => this._updateResolution());
@@ -63,12 +68,19 @@ class Player {
         this.resBadge.className = "tile-res";
         container.appendChild(this.resBadge);
 
+        this.muteBadge = document.createElement("div");
+        this.muteBadge.className = "tile-mute";
+        this.muteBadge.title = "静音中";
+        container.appendChild(this.muteBadge);
+        this._updateMuteBadge();
+
         container.addEventListener("click", () => {
             if (this.onClick) this.onClick(this);
         });
     }
 
     async load() {
+        if (this._destroyed) return;
         try {
             const params = new URLSearchParams({
                 room_id: this.roomInput,
@@ -115,17 +127,59 @@ class Player {
             stashInitialSize: 128,
         });
         player.attachMediaElement(this.videoEl);
+        player.on(flvjs.Events.ERROR, (errType, errDetail) => {
+            console.warn(`[Player ${this.roomInput}] flv error:`, errType, errDetail);
+            this._scheduleReconnect();
+        });
         player.load();
-        player.play().catch(() => { /* autoplay 被拦截时静音重试 */ });
+        player.play().catch(() => { /* autoplay 静音重试 */ });
         this.flvPlayer = player;
+    }
+
+    // 流断了 / CDN expires 过期 → 指数退避重连
+    _scheduleReconnect() {
+        if (this._destroyed || this._reconnectTimer) return;
+        const delay = Math.min(3000 * Math.pow(2, this._reconnectCount), 30000);
+        this._reconnectCount += 1;
+        if (this.container) this.container.classList.add("is-loading");
+        if (this.label) this.label.textContent = `重连中…(${this._reconnectCount}) ${this.uname || this.roomInput}`;
+        this._reconnectTimer = setTimeout(() => {
+            this._reconnectTimer = null;
+            if (this._destroyed) return;
+            this.load();  // 重新拉 stream URL（CDN 地址会刷新）+ reattach flv
+        }, delay);
     }
 
     async switchQuality(newQn) {
         if (newQn === this.qn) return;
+        const wasMuted = this.videoEl ? this.videoEl.muted : true;
         this.qn = newQn;
         if (this.qnBadge) this.qnBadge.textContent = QN_LABEL[newQn] || `qn=${newQn}`;
         if (this.container) this.mount(this.container);
+        if (this.videoEl) this.videoEl.muted = wasMuted;
+        this._updateMuteBadge();
         await this.load();
+    }
+
+    setMuted(muted) {
+        if (this.videoEl) this.videoEl.muted = muted;
+        this._updateMuteBadge();
+    }
+
+    toggleMuted() {
+        if (!this.videoEl) return;
+        this.setMuted(!this.videoEl.muted);
+    }
+
+    _updateMuteBadge() {
+        if (!this.muteBadge || !this.videoEl) return;
+        if (this.videoEl.muted) {
+            this.muteBadge.classList.add("is-muted");
+            this.muteBadge.classList.remove("is-live");
+        } else {
+            this.muteBadge.classList.add("is-live");
+            this.muteBadge.classList.remove("is-muted");
+        }
     }
 
     _showPlaceholder(text, cls) {
@@ -153,6 +207,8 @@ class Player {
     }
 
     destroy() {
+        this._destroyed = true;
+        if (this._reconnectTimer) { clearTimeout(this._reconnectTimer); this._reconnectTimer = null; }
         this._destroyFlv();
         if (this.container) this.container.innerHTML = "";
     }

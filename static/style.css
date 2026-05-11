@@ -316,7 +316,58 @@ html, body {
     z-index: 2;
 }
 
-/* 实际分辨率徽章（左下角） — 按分级配色 */
+/* 音量状态徽章（右上角，qn 徽章左侧） */
+.tile .tile-mute {
+    position: absolute;
+    top: 10px;
+    right: 64px;  /* qn-badge 占了 ~54px 含 padding */
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s var(--ease-quick), opacity 0.25s var(--ease-quick);
+    opacity: 0;
+    pointer-events: none;
+}
+/* 默认隐藏，仅焦点路 / 出声时可见 */
+.tile .tile-mute { opacity: 0; }
+.tile.is-focus .tile-mute { opacity: 1; }
+.tile .tile-mute.is-live { opacity: 1; }
+.tile .tile-mute.is-muted::before {
+    content: "";
+    width: 14px;
+    height: 14px;
+    background: #fff;
+    -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M11 5 6 9H3v6h3l5 4V5Z M16 9l5 5m0-5-5 5' stroke='white' stroke-width='1.8' fill='none' stroke-linecap='round'/></svg>") center/contain no-repeat;
+            mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M11 5 6 9H3v6h3l5 4V5Z M16 9l5 5m0-5-5 5' stroke='white' stroke-width='1.8' fill='none' stroke-linecap='round'/></svg>") center/contain no-repeat;
+}
+/* 出声状态：常亮显示，绿色脉冲 */
+.tile .tile-mute.is-live {
+    opacity: 1;
+    background: rgba(48, 209, 88, 0.92);
+    box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.6);
+    animation: liveSoundPulse 1.8s infinite;
+}
+.tile .tile-mute.is-live::before {
+    content: "";
+    width: 14px;
+    height: 14px;
+    background: #fff;
+    -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M11 5 6 9H3v6h3l5 4V5Z M16 8a5 5 0 0 1 0 8 M18.5 5.5a8 8 0 0 1 0 13' stroke='white' stroke-width='1.8' fill='none' stroke-linecap='round'/></svg>") center/contain no-repeat;
+            mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M11 5 6 9H3v6h3l5 4V5Z M16 8a5 5 0 0 1 0 8 M18.5 5.5a8 8 0 0 1 0 13' stroke='white' stroke-width='1.8' fill='none' stroke-linecap='round'/></svg>") center/contain no-repeat;
+}
+@keyframes liveSoundPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.5); }
+    50%      { box-shadow: 0 0 0 8px rgba(48, 209, 88, 0); }
+}
+
+/* 实际分辨率徽章（右下角） — 按分级配色 */
 .tile .tile-res {
     position: absolute;
     bottom: 10px;
@@ -465,4 +516,19 @@ html, body {
     color: var(--text-primary);
     border: 1px solid var(--separator);
     margin: 0 2px;
+}
+.empty-hint .shortcuts {
+    margin-top: 28px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 18px;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+.empty-hint .shortcuts > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
 }
