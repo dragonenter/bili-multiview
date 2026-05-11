@@ -40,7 +40,7 @@ def parse_room_id(text: str) -> str:
     - 完整链接 https://live.bilibili.com/12345 (可带 query/尾斜杠)
     - 纯数字字符串 12345
     """
-    if not text:
+    if not text or not text.strip():
         raise RoomIdError("输入为空")
     text = text.strip()
     m = _URL_RE.search(text)
@@ -56,8 +56,15 @@ def parse_room_id(text: str) -> str:
 
 
 async def _fetch_json(client: httpx.AsyncClient, url: str, params: dict) -> dict:
-    resp = await client.get(url, params=params, headers=_HEADERS, timeout=8.0)
-    resp.raise_for_status()
+    try:
+        resp = await client.get(url, params=params, headers=_HEADERS, timeout=8.0)
+        resp.raise_for_status()
+    except httpx.HTTPStatusError as e:
+        raise BiliApiError(
+            f"B 站接口返回 HTTP {e.response.status_code}：{url}"
+        ) from e
+    except httpx.RequestError as e:
+        raise BiliApiError(f"B 站接口请求失败：{e}") from e
     return resp.json()
 
 

@@ -42,6 +42,10 @@ class TestParseRoomId:
         with pytest.raises(RoomIdError):
             parse_room_id("0")
 
+    def test_whitespace_only_raises(self):
+        with pytest.raises(RoomIdError):
+            parse_room_id("   ")
+
 
 SAMPLE_PLAYINFO = {
     "code": 0,
@@ -127,5 +131,15 @@ async def test_get_stream_info_api_error_raises():
     respx.get("https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom").mock(
         return_value=httpx.Response(200, json=SAMPLE_ROOMINFO))
 
+    with pytest.raises(BiliApiError):
+        await get_stream_info("12345")
+
+
+@respx.mock
+async def test_get_stream_info_http_500_raises_biliapierror():
+    respx.get("https://api.live.bilibili.com/xlive/web-room/v2/index/getRoomPlayInfo").mock(
+        return_value=httpx.Response(500))
+    respx.get("https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom").mock(
+        return_value=httpx.Response(200, json=SAMPLE_ROOMINFO))
     with pytest.raises(BiliApiError):
         await get_stream_info("12345")
