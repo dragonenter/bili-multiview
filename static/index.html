@@ -2,19 +2,34 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8" />
-    <title>B站多路直播分屏 - bili-multiview</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <title>bili-multiview · 多路直播分屏</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%230a84ff'/%3E%3Cpath d='M7 8h10v8H7zM9 17l3 2 3-2' stroke='white' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
     <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
     <header class="toolbar">
-        <textarea id="urls" placeholder="一行一个 B 站直播链接或房间号&#10;https://live.bilibili.com/12345&#10;67890"></textarea>
+        <div class="brand">
+            <span class="brand-title">bili-multiview</span>
+            <span class="brand-sub">多路直播分屏</span>
+        </div>
+        <textarea id="urls" placeholder="一行一个 B 站直播链接或房间号（最多 9 路）
+https://live.bilibili.com/12345
+67890"></textarea>
         <div class="buttons">
             <button id="btn-start">开始观看</button>
             <button id="btn-clear">清空</button>
             <button id="btn-exit-focus" hidden>退出焦点</button>
         </div>
     </header>
-    <main id="stage" class="grid"></main>
+    <main id="stage" class="grid empty">
+        <div class="empty-hint">
+            <div class="logo"></div>
+            <h2>同屏看多路 B 站直播</h2>
+            <p>把直播链接或房间号粘到上方输入框，每行一个，点 <span class="kbd">开始观看</span>。<br/>单击任一路放大并自动升原画。</p>
+        </div>
+    </main>
     <script src="/static/flv.min.js"></script>
     <script src="/static/player.js"></script>
     <script src="/static/app.js"></script>

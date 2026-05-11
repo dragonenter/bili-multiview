@@ -22,8 +22,13 @@ function clearStage() {
     players.forEach(p => p.destroy());
     players = [];
     focusedIdx = -1;
-    stage.className = "grid";
-    stage.innerHTML = "";
+    stage.className = "grid empty";
+    stage.innerHTML = `
+        <div class="empty-hint">
+            <div class="logo"></div>
+            <h2>同屏看多路 B 站直播</h2>
+            <p>把直播链接或房间号粘到上方输入框，每行一个，点 <span class="kbd">开始观看</span>。<br/>单击任一路放大并自动升原画。</p>
+        </div>`;
     btnExitFocus.hidden = true;
 }
 

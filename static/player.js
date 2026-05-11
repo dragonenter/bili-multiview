@@ -20,7 +20,7 @@ class Player {
 
     mount(container) {
         this.container = container;
-        container.classList.add("tile");
+        container.classList.add("tile", "is-loading");
         container.classList.remove("is-error", "is-offline", "is-focus");
         container.innerHTML = "";
 
@@ -28,6 +28,9 @@ class Player {
         this.videoEl.muted = true;
         this.videoEl.autoplay = true;
         this.videoEl.playsInline = true;
+        this.videoEl.addEventListener("playing", () => {
+            if (this.container) this.container.classList.remove("is-loading");
+        });
         container.appendChild(this.videoEl);
 
         this.label = document.createElement("div");
@@ -108,7 +111,7 @@ class Player {
     _showPlaceholder(text, cls) {
         this._destroyFlv();
         if (!this.container) return;
-        this.container.classList.remove("is-error", "is-offline");
+        this.container.classList.remove("is-error", "is-offline", "is-loading");
         this.container.classList.add(cls);
         if (this.videoEl) { this.videoEl.remove(); this.videoEl = null; }
         const p = document.createElement("div");
