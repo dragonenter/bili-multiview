@@ -3,6 +3,19 @@ const QN_LABEL = {
     80: "流畅", 150: "高清", 250: "超清", 400: "蓝光", 10000: "原画"
 };
 
+// 按短边像素分级；返回 [显示文本, 等级 class]
+function resolutionTier(w, h) {
+    if (!w || !h) return ["", ""];
+    const short = Math.min(w, h);
+    let tier;
+    if (short >= 2160) tier = "tier-4k";
+    else if (short >= 1440) tier = "tier-2k";
+    else if (short >= 1080) tier = "tier-1080";
+    else if (short >= 720) tier = "tier-720";
+    else tier = "tier-low";
+    return [`${w}×${h}`, tier];
+}
+
 class Player {
     constructor(roomInput, initialQn = 250) {
         this.roomInput = roomInput;      // 原始输入（链接或数字）
@@ -15,6 +28,7 @@ class Player {
         this.container = null;
         this.label = null;
         this.qnBadge = null;
+        this.resBadge = null;
         this.onClick = null;             // 由 app.js 注入
     }
 
@@ -31,6 +45,8 @@ class Player {
         this.videoEl.addEventListener("playing", () => {
             if (this.container) this.container.classList.remove("is-loading");
         });
+        this.videoEl.addEventListener("loadedmetadata", () => this._updateResolution());
+        this.videoEl.addEventListener("resize", () => this._updateResolution());
         container.appendChild(this.videoEl);
 
         this.label = document.createElement("div");
@@ -42,6 +58,10 @@ class Player {
         this.qnBadge.className = "tile-qn";
         this.qnBadge.textContent = QN_LABEL[this.qn] || `qn=${this.qn}`;
         container.appendChild(this.qnBadge);
+
+        this.resBadge = document.createElement("div");
+        this.resBadge.className = "tile-res";
+        container.appendChild(this.resBadge);
 
         container.addEventListener("click", () => {
             if (this.onClick) this.onClick(this);
@@ -135,6 +155,13 @@ class Player {
     destroy() {
         this._destroyFlv();
         if (this.container) this.container.innerHTML = "";
+    }
+
+    _updateResolution() {
+        if (!this.videoEl || !this.resBadge) return;
+        const [text, tier] = resolutionTier(this.videoEl.videoWidth, this.videoEl.videoHeight);
+        this.resBadge.className = "tile-res " + tier;
+        this.resBadge.textContent = text;
     }
 }
 

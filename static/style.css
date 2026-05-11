@@ -316,6 +316,48 @@ html, body {
     z-index: 2;
 }
 
+/* 实际分辨率徽章（左下角） — 按分级配色 */
+.tile .tile-res {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    padding: 4px 9px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    border-radius: 6px;
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: 0.01em;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 0.25s var(--ease-quick);
+}
+.tile .tile-res:not(:empty) {
+    opacity: 1;
+}
+.tile .tile-res.tier-4k {
+    background: linear-gradient(135deg, rgba(255, 184, 0, 0.92), rgba(255, 95, 0, 0.92));
+    box-shadow: 0 2px 12px rgba(255, 140, 0, 0.45);
+}
+.tile .tile-res.tier-2k {
+    background: linear-gradient(135deg, rgba(48, 209, 88, 0.92), rgba(0, 199, 190, 0.92));
+    box-shadow: 0 2px 12px rgba(48, 209, 88, 0.4);
+}
+.tile .tile-res.tier-1080 {
+    background: rgba(10, 132, 255, 0.85);
+    box-shadow: 0 2px 10px rgba(10, 132, 255, 0.3);
+}
+.tile .tile-res.tier-720 {
+    background: rgba(255, 255, 255, 0.18);
+    color: rgba(255, 255, 255, 0.92);
+}
+.tile .tile-res.tier-low {
+    background: rgba(255, 159, 10, 0.7);
+    color: #fff;
+}
+
 /* 占位（错误/未开播） */
 .tile.is-error,
 .tile.is-offline {
