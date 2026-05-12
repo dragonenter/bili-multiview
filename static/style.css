@@ -528,6 +528,57 @@ html, body {
     color: #fff;
 }
 
+/* ========================= 弹幕 ========================= */
+.tile .tile-danmaku {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 56px;  /* 在 label 上方 */
+    max-height: 35%;
+    overflow: hidden;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 3px;
+    z-index: 1;
+    mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.6) 20%, #000 80%);
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.6) 20%, #000 80%);
+}
+.tile .dm-line {
+    font-size: 12px;
+    line-height: 1.4;
+    color: #fff;
+    text-shadow:
+        0 0 4px rgba(0, 0, 0, 0.95),
+        1px 1px 2px rgba(0, 0, 0, 0.85);
+    padding: 1px 0;
+    letter-spacing: -0.01em;
+    word-break: break-all;
+    animation: dmFadeIn 0.2s var(--ease-quick);
+    opacity: 0.96;
+}
+@keyframes dmFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 0.96; transform: translateY(0); }
+}
+.tile .dm-line.dm-gift   { color: #ff9f0a; font-weight: 500; }
+.tile .dm-line.dm-sc     { color: #ffd60a; font-weight: 600; }
+.tile .dm-line.dm-enter  { color: rgba(255, 255, 255, 0.55); font-size: 11px; }
+
+/* 焦点态：弹幕区扩大、字号增大 */
+.tile.is-focus .tile-danmaku {
+    bottom: 64px;
+    max-height: 45%;
+    right: 24px;
+    left: auto;
+    width: 380px;
+}
+.tile.is-focus .dm-line { font-size: 14px; line-height: 1.45; }
+
+/* sidebar 小 tile 隐藏弹幕（空间不够） */
+#stage.focus > .sidebar > .tile .tile-danmaku { display: none; }
+
 /* 占位（错误/未开播） */
 .tile.is-error,
 .tile.is-offline {

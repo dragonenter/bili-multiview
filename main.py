@@ -1,7 +1,10 @@
+import asyncio
+import json
+import logging
 from pathlib import Path
 
 from fastapi import Body, FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from bili_api import (
@@ -13,6 +16,9 @@ from bili_api import (
     StreamNotLiveError,
     BiliApiError,
 )
+from danmaku import subscribe as danmaku_subscribe, DanmakuError
+
+logging.basicConfig(level=logging.INFO)
 
 
 app = FastAPI(title="bili-multiview")
@@ -77,3 +83,56 @@ async def api_status(payload: dict = Body(...)):
         return await get_status_by_uids(clean)
     except BiliApiError as e:
         raise HTTPException(status_code=502, detail=f"B站接口异常：{e}")
+
+
+@app.get("/api/danmaku/{room_id}")
+async def api_danmaku(room_id: int):
+    """SSE 推送指定房间的弹幕。客户端用 EventSource 订阅。"""
+
+    async def event_stream():
+        yield ": connected\n\n"
+        # 长时间无弹幕时给 SSE 发 keepalive 注释行避免 proxy 断开
+        q: asyncio.Queue = asyncio.Queue()
+
+        async def producer():
+            try:
+                async for msg in danmaku_subscribe(room_id):
+                    await q.put(("msg", msg))
+            except DanmakuError as e:
+                await q.put(("err", str(e)))
+            except Exception as e:
+                logging.warning("danmaku stream error room=%s: %s", room_id, e)
+                await q.put(("err", str(e)))
+            await q.put(("end", None))
+
+        task = asyncio.create_task(producer())
+        try:
+            while True:
+                try:
+                    kind, payload = await asyncio.wait_for(q.get(), timeout=15.0)
+                except asyncio.TimeoutError:
+                    yield ": keepalive\n\n"
+                    continue
+                if kind == "msg":
+                    yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
+                elif kind == "err":
+                    yield f"event: error\ndata: {json.dumps({'error': payload})}\n\n"
+                    break
+                elif kind == "end":
+                    break
+        finally:
+            task.cancel()
+            try:
+                await task
+            except BaseException:
+                pass
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-transform",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )

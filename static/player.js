@@ -68,6 +68,9 @@ class Player {
         this._reconnectTimer = null;
         this._durationTimer = null;
         this._destroyed = false;
+        this.danmakuEnabled = true;
+        this.danmakuEs = null;
+        this.danmakuContainer = null;
     }
 
     mount(container) {
@@ -142,9 +145,67 @@ class Player {
         container.appendChild(this.muteBadge);
         this._updateMuteBadge();
 
+        // 弹幕容器（叠在视频上、底部上滚 / 焦点态居底固定）
+        this.danmakuContainer = document.createElement("div");
+        this.danmakuContainer.className = "tile-danmaku";
+        container.appendChild(this.danmakuContainer);
+
         container.addEventListener("click", () => {
             if (this.onClick) this.onClick(this);
         });
+    }
+
+    // ============ 弹幕 ============
+    _startDanmaku() {
+        if (!this.danmakuEnabled || !this.realRoomId) return;
+        this._stopDanmaku();
+        try {
+            this.danmakuEs = new EventSource(`/api/danmaku/${this.realRoomId}`);
+            this.danmakuEs.onmessage = (e) => {
+                try {
+                    const msg = JSON.parse(e.data);
+                    this._appendDanmaku(msg);
+                } catch (_) { /* ignore */ }
+            };
+            this.danmakuEs.onerror = () => {
+                // EventSource 内置重连，让浏览器自己处理；这里只清理超长队列
+            };
+        } catch (e) {
+            console.warn("[Player] danmaku ES failed:", e);
+        }
+    }
+    _stopDanmaku() {
+        if (this.danmakuEs) {
+            try { this.danmakuEs.close(); } catch (_) {}
+            this.danmakuEs = null;
+        }
+        if (this.danmakuContainer) this.danmakuContainer.innerHTML = "";
+    }
+    _appendDanmaku(msg) {
+        if (!this.danmakuContainer) return;
+        const line = document.createElement("div");
+        line.className = "dm-line dm-" + (msg.type || "danmu");
+        if (msg.type === "danmu") {
+            line.textContent = `${msg.uname}: ${msg.text}`;
+            if (msg.color && msg.color !== 0xFFFFFF) {
+                line.style.color = "#" + msg.color.toString(16).padStart(6, "0");
+            }
+        } else if (msg.type === "gift") {
+            line.textContent = `🎁 ${msg.uname} 送出 ${msg.gift_name} ×${msg.num}`;
+        } else if (msg.type === "sc") {
+            line.textContent = `💎 ${msg.uname} (¥${msg.price}): ${msg.text}`;
+        } else if (msg.type === "enter") {
+            line.textContent = `→ ${msg.uname} 来了`;
+        } else {
+            return;
+        }
+        this.danmakuContainer.appendChild(line);
+        // 上限 50 条防止 DOM 膨胀
+        while (this.danmakuContainer.children.length > 50) {
+            this.danmakuContainer.removeChild(this.danmakuContainer.firstChild);
+        }
+        // 自动滚动到底部
+        this.danmakuContainer.scrollTop = this.danmakuContainer.scrollHeight;
     }
 
     _renderMetadata() {
@@ -217,6 +278,7 @@ class Player {
             this._renderMetadata();
             if (this.qnBadge) this.qnBadge.textContent = QN_LABEL[this.qn] || `qn=${this.qn}`;
             this._attachFlv(info.stream_url);
+            this._startDanmaku();
         } catch (e) {
             this._showPlaceholder(`错误: ${e.message}`, "is-error");
         }
@@ -298,6 +360,7 @@ class Player {
 
     _showPlaceholder(text, cls) {
         this._destroyFlv();
+        this._stopDanmaku();
         if (!this.container) return;
         this.container.classList.remove("is-error", "is-offline", "is-loading");
         this.container.classList.add(cls);
@@ -324,6 +387,7 @@ class Player {
         this._destroyed = true;
         if (this._reconnectTimer) { clearTimeout(this._reconnectTimer); this._reconnectTimer = null; }
         if (this._durationTimer) { clearInterval(this._durationTimer); this._durationTimer = null; }
+        this._stopDanmaku();
         this._destroyFlv();
         if (this.container) this.container.innerHTML = "";
     }
