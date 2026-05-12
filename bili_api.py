@@ -22,6 +22,7 @@ _NUMBER_RE = re.compile(r"^\d+$")
 
 _PLAYINFO_URL = "https://api.live.bilibili.com/xlive/web-room/v2/index/getRoomPlayInfo"
 _ROOMINFO_URL = "https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom"
+_STATUS_BY_UIDS_URL = "https://api.live.bilibili.com/room/v1/Room/get_status_info_by_uids"
 
 _HEADERS = {
     "Referer": "https://live.bilibili.com",
@@ -66,6 +67,68 @@ async def _fetch_json(client: httpx.AsyncClient, url: str, params: dict) -> dict
     except httpx.RequestError as e:
         raise BiliApiError(f"B 站接口请求失败：{e}") from e
     return resp.json()
+
+
+async def get_room_meta(room_id: str) -> dict[str, Any]:
+    """只调 getInfoByRoom 拿房间元信息（不要求开播，用于加入关注列表）。
+
+    返回字段包含 uid（关键，是后续批量查在播状态的入口）。
+    """
+    async with httpx.AsyncClient(trust_env=False) as client:
+        info_json = await _fetch_json(client, _ROOMINFO_URL, {"room_id": room_id})
+    if info_json.get("code") != 0:
+        raise BiliApiError(
+            f"getInfoByRoom code={info_json.get('code')} msg={info_json.get('message')}"
+        )
+    idata = info_json.get("data") or {}
+    rinfo = idata.get("room_info") or {}
+    ainfo = idata.get("anchor_info") or {}
+    base = ainfo.get("base_info") or {}
+    return {
+        "room_id": int(room_id),
+        "real_room_id": rinfo.get("room_id") or int(room_id),
+        "uid": rinfo.get("uid") or 0,
+        "uname": base.get("uname") or "",
+        "face": base.get("face") or "",
+        "title": rinfo.get("title") or "",
+        "area_name": rinfo.get("area_name") or "",
+        "parent_area_name": rinfo.get("parent_area_name") or "",
+        "live_status": rinfo.get("live_status", 0),
+        "online": rinfo.get("online") or 0,
+        "live_start_time": rinfo.get("live_start_time") or 0,
+    }
+
+
+async def get_status_by_uids(uids: list[int]) -> dict[str, Any]:
+    """批量查多个主播的当前直播状态。
+
+    B 站接口：POST /room/v1/Room/get_status_info_by_uids，body {"uids": [int,...]}
+    返回 {str_uid: {room_id, title, live_status, online, ...}}；
+    未开播 / 没直播间的 UID 通常不在返回里。
+    """
+    if not uids:
+        return {}
+    async with httpx.AsyncClient(trust_env=False) as client:
+        try:
+            resp = await client.post(
+                _STATUS_BY_UIDS_URL,
+                json={"uids": list(uids)},
+                headers=_HEADERS,
+                timeout=8.0,
+            )
+            resp.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            raise BiliApiError(
+                f"get_status_info_by_uids HTTP {e.response.status_code}"
+            ) from e
+        except httpx.RequestError as e:
+            raise BiliApiError(f"get_status_info_by_uids request failed: {e}") from e
+        j = resp.json()
+    if j.get("code") != 0:
+        raise BiliApiError(
+            f"get_status_info_by_uids code={j.get('code')} msg={j.get('message')}"
+        )
+    return j.get("data") or {}
 
 
 async def get_stream_info(room_id: str, qn: int = 250) -> dict[str, Any]:

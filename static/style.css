@@ -651,3 +651,249 @@ html, body {
     gap: 4px;
     white-space: nowrap;
 }
+
+/* ========================= 关注按钮 ========================= */
+#btn-follow.btn-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: none;
+}
+#btn-follow.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.13);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+.follow-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.25);
+    transition: background 0.25s var(--ease-quick), box-shadow 0.25s var(--ease-quick);
+}
+.follow-dot.is-live {
+    background: #30d158;
+    box-shadow: 0 0 0 3px rgba(48, 209, 88, 0.25);
+    animation: livePulse 1.6s infinite;
+}
+@keyframes livePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.5); }
+    50%      { box-shadow: 0 0 0 6px rgba(48, 209, 88, 0); }
+}
+
+/* ========================= 关注抽屉 ========================= */
+.follow-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.28s var(--ease);
+}
+.follow-overlay.is-open { opacity: 1; }
+
+.follow-drawer {
+    position: fixed;
+    top: 0; right: 0;
+    width: 380px;
+    max-width: 100vw;
+    height: 100vh;
+    background: rgba(20, 20, 22, 0.92);
+    backdrop-filter: saturate(180%) blur(30px);
+    -webkit-backdrop-filter: saturate(180%) blur(30px);
+    border-left: 1px solid var(--separator);
+    z-index: 101;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.32s var(--ease);
+    box-shadow: -16px 0 48px rgba(0, 0, 0, 0.4);
+}
+.follow-drawer.is-open { transform: translateX(0); }
+
+.follow-header {
+    padding: 18px 20px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--separator);
+}
+.follow-header h3 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s var(--ease-quick);
+}
+.icon-btn:hover { background: rgba(255, 255, 255, 0.08); color: var(--text-primary); }
+
+.follow-summary {
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--separator);
+}
+#follow-summary-text { font-size: 13px; color: var(--text-secondary); }
+.btn-primary-sm {
+    padding: 6px 12px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s var(--ease-quick), transform 0.15s var(--ease-quick);
+    font-family: inherit;
+}
+.btn-primary-sm:hover:not(:disabled) {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+}
+.btn-primary-sm:disabled {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-tertiary);
+    cursor: not-allowed;
+}
+
+.follow-add {
+    padding: 12px 20px;
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid var(--separator);
+}
+.follow-add input {
+    flex: 1;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 12px;
+    font-family: inherit;
+    outline: none;
+    transition: background 0.2s var(--ease-quick), border-color 0.2s var(--ease-quick);
+}
+.follow-add input:focus {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: var(--accent);
+}
+.follow-add button {
+    padding: 7px 14px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+}
+.follow-add button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.follow-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+.follow-list::-webkit-scrollbar { width: 6px; }
+.follow-list::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.16); border-radius: 3px; }
+
+.follow-section-head {
+    padding: 8px 20px 4px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary);
+    font-weight: 600;
+}
+.follow-section-head.live { color: rgba(48, 209, 88, 0.85); }
+
+.follow-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    transition: background 0.15s var(--ease-quick);
+}
+.follow-item:hover { background: rgba(255, 255, 255, 0.04); }
+.follow-item.is-off { opacity: 0.55; }
+.follow-face {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    flex: 0 0 40px;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.follow-item.is-live .follow-face {
+    border-color: rgba(48, 209, 88, 0.6);
+    box-shadow: 0 0 0 2px rgba(48, 209, 88, 0.2);
+}
+.follow-meta { flex: 1; min-width: 0; }
+.follow-uname {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.follow-sub {
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    margin-top: 1px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.follow-stats {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 1px;
+}
+.follow-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+.icon-btn-sm {
+    width: 22px; height: 22px;
+    background: transparent;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    border-radius: 50%;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s, color 0.15s;
+}
+.follow-item:hover .icon-btn-sm { opacity: 1; }
+.icon-btn-sm:hover { background: rgba(255, 99, 99, 0.18); color: rgba(255, 105, 97, 0.9); }
+.follow-empty {
+    padding: 36px 20px;
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 12.5px;
+    line-height: 1.7;
+}

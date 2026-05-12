@@ -19,6 +19,10 @@ https://live.bilibili.com/12345
 67890"></textarea>
         <div class="buttons">
             <button id="btn-start">开始观看</button>
+            <button id="btn-follow" class="btn-secondary">
+                <span class="follow-dot"></span>
+                <span>关注 <span id="follow-count">0/0</span></span>
+            </button>
             <button id="btn-clear">清空</button>
             <button id="btn-exit-focus" hidden>退出焦点</button>
         </div>
@@ -28,10 +32,37 @@ https://live.bilibili.com/12345
             <div class="logo"></div>
             <h2>同屏看多路 B 站直播</h2>
             <p>把直播链接或房间号粘到上方输入框，每行一个，点 <span class="kbd">开始观看</span>。<br/>单击任一路放大并自动升原画。</p>
+            <div class="shortcuts">
+                <span><span class="kbd">1</span>–<span class="kbd">9</span> 切焦点</span>
+                <span><span class="kbd">←</span><span class="kbd">→</span> 上/下一路</span>
+                <span><span class="kbd">F</span> 全屏</span>
+                <span><span class="kbd">M</span> 静音</span>
+                <span><span class="kbd">Esc</span> 退出</span>
+            </div>
         </div>
     </main>
+
+    <!-- 关注列表抽屉 -->
+    <aside id="follow-drawer" class="follow-drawer" hidden>
+        <div class="follow-header">
+            <h3>我的关注</h3>
+            <button id="follow-close" class="icon-btn" aria-label="关闭">✕</button>
+        </div>
+        <div class="follow-summary">
+            <span id="follow-summary-text">0 / 0 在播</span>
+            <button id="btn-load-live" class="btn-primary-sm" disabled>载入全部在播</button>
+        </div>
+        <div class="follow-add">
+            <input id="follow-input" placeholder="粘贴直播链接或房间号添加…" />
+            <button id="btn-follow-add">添加</button>
+        </div>
+        <div id="follow-list" class="follow-list"></div>
+    </aside>
+    <div id="follow-overlay" class="follow-overlay" hidden></div>
+
     <script src="/static/flv.min.js"></script>
     <script src="/static/player.js"></script>
+    <script src="/static/follow.js"></script>
     <script src="/static/app.js"></script>
 </body>
 </html>
