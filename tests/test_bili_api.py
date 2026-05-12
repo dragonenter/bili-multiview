@@ -82,8 +82,23 @@ SAMPLE_PLAYINFO = {
 SAMPLE_ROOMINFO = {
     "code": 0,
     "data": {
-        "room_info": {"title": "测试直播间标题"},
-        "anchor_info": {"base_info": {"uname": "测试主播"}},
+        "room_info": {
+            "title": "测试直播间标题",
+            "uid": 12345678,
+            "online": 12345,
+            "live_start_time": 1700000000,
+            "area_name": "英雄联盟",
+            "parent_area_name": "网游",
+            "tags": "电竞,LPL",
+            "attention": 9999,
+        },
+        "anchor_info": {
+            "base_info": {
+                "uname": "测试主播",
+                "face": "https://i0.hdslb.com/bfs/face/test.jpg",
+            },
+            "relation_info": {"attention": 555555},
+        },
     },
 }
 
@@ -107,6 +122,15 @@ async def test_get_stream_info_success():
         "https://cn-cdn.bilivideo.com/live-bvc/123/live_999.flv?expires=1&token=abc"
     )
     assert info["format"] == "flv"
+    # 元信息扩展字段
+    assert info["uid"] == 12345678
+    assert info["face"] == "https://i0.hdslb.com/bfs/face/test.jpg"
+    assert info["online"] == 12345
+    assert info["live_start_time"] == 1700000000
+    assert info["area_name"] == "英雄联盟"
+    assert info["parent_area_name"] == "网游"
+    assert info["tags"] == "电竞,LPL"
+    assert info["fans"] == 555555
 
 
 @respx.mock

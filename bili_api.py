@@ -98,10 +98,32 @@ async def get_stream_info(room_id: str, qn: int = 250) -> dict[str, Any]:
 
     title = "未知标题"
     uname = "未知主播"
+    uid = 0
+    face = ""
+    online = 0
+    live_start_time = 0
+    area_name = ""
+    parent_area_name = ""
+    tags = ""
+    fans = 0
     if info_json.get("code") == 0:
         idata = info_json.get("data") or {}
-        title = (idata.get("room_info") or {}).get("title") or title
-        uname = ((idata.get("anchor_info") or {}).get("base_info") or {}).get("uname") or uname
+        rinfo = idata.get("room_info") or {}
+        ainfo = idata.get("anchor_info") or {}
+        ainfo_base = ainfo.get("base_info") or {}
+        ainfo_rel = ainfo.get("relation_info") or {}
+
+        title = rinfo.get("title") or title
+        uid = rinfo.get("uid") or 0
+        online = rinfo.get("online") or 0
+        live_start_time = rinfo.get("live_start_time") or 0
+        area_name = rinfo.get("area_name") or ""
+        parent_area_name = rinfo.get("parent_area_name") or ""
+        tags = rinfo.get("tags") or ""
+
+        uname = ainfo_base.get("uname") or uname
+        face = ainfo_base.get("face") or ""
+        fans = ainfo_rel.get("attention") or rinfo.get("attention") or 0
 
     if live_status != 1 or not pdata.get("playurl_info"):
         raise StreamNotLiveError(
@@ -124,6 +146,14 @@ async def get_stream_info(room_id: str, qn: int = 250) -> dict[str, Any]:
         "live_status": live_status,
         "title": title,
         "uname": uname,
+        "uid": uid,
+        "face": face,
+        "online": online,
+        "live_start_time": live_start_time,
+        "area_name": area_name,
+        "parent_area_name": parent_area_name,
+        "tags": tags,
+        "fans": fans,
         "qn": current_qn,
         "accept_qn": accept_qn,
         "stream_url": stream_url,

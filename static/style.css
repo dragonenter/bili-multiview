@@ -217,6 +217,35 @@ html, body {
     cursor: pointer;
     transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
 }
+/* sidebar 小 tile 隐藏次要徽章避免拥挤，只保留画质 + 时长 + label */
+#stage.focus > .sidebar > .tile .tile-area,
+#stage.focus > .sidebar > .tile .tile-online,
+#stage.focus > .sidebar > .tile .tile-res {
+    display: none;
+}
+#stage.focus > .sidebar > .tile .tile-label {
+    bottom: 6px; left: 6px;
+    padding: 4px 8px 4px 4px;
+    max-width: calc(100% - 12px);
+}
+#stage.focus > .sidebar > .tile .tile-avatar {
+    width: 20px; height: 20px; flex: 0 0 20px;
+}
+#stage.focus > .sidebar > .tile .tile-uname { font-size: 11px; }
+#stage.focus > .sidebar > .tile .tile-title { display: none; }
+#stage.focus > .sidebar > .tile .tile-duration {
+    top: 6px; left: 6px;
+    font-size: 9.5px;
+    padding: 2px 6px;
+}
+#stage.focus > .sidebar > .tile .tile-qn {
+    top: 6px; right: 6px;
+    padding: 2px 6px;
+    font-size: 9.5px;
+}
+#stage.focus > .sidebar > .tile .tile-mute {
+    width: 18px; height: 18px; right: 44px; top: 6px;
+}
 #stage.focus > .sidebar > .tile:hover {
     transform: translateY(-2px) scale(1.02);
     box-shadow: var(--shadow-tile-hover);
@@ -272,30 +301,120 @@ html, body {
     100% { background-position: -200% 0; }
 }
 
+/* 左下信息卡：头像 + 主播名 + 标题 */
 .tile .tile-label {
     position: absolute;
     bottom: 10px;
     left: 10px;
-    padding: 6px 10px;
-    font-size: 12px;
-    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px 6px 6px;
     background: rgba(0, 0, 0, 0.55);
     backdrop-filter: saturate(180%) blur(14px);
     -webkit-backdrop-filter: saturate(180%) blur(14px);
     color: #fff;
-    border-radius: 7px;
-    max-width: calc(100% - 100px);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    letter-spacing: -0.01em;
+    border-radius: 999px;
+    max-width: calc(100% - 110px);
+    z-index: 2;
     opacity: 0;
     transition: opacity 0.25s var(--ease-quick);
-    z-index: 2;
 }
 .tile:hover .tile-label,
 .tile.is-focus .tile-label {
     opacity: 1;
+}
+.tile .tile-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    flex: 0 0 26px;
+    background: rgba(255, 255, 255, 0.08);
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.tile .tile-avatar:not(.has-img) {
+    background:
+        linear-gradient(135deg, rgba(10, 132, 255, 0.6), rgba(90, 200, 250, 0.4));
+}
+.tile .tile-label-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    line-height: 1.25;
+}
+.tile .tile-uname {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.tile .tile-title {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 240px;
+}
+
+/* 焦点态信息卡可以更宽 */
+.tile.is-focus .tile-title { max-width: 480px; }
+
+/* 左上角：分区标签 */
+.tile .tile-area {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 4px 9px;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.14);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    border-radius: 6px;
+    letter-spacing: -0.01em;
+    z-index: 2;
+}
+
+/* 左上角下方：直播时长 */
+.tile .tile-duration {
+    position: absolute;
+    top: 40px;
+    left: 10px;
+    padding: 3px 8px;
+    font-size: 10.5px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(0, 0, 0, 0.42);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    border-radius: 5px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: 0.02em;
+    z-index: 2;
+}
+
+/* 右下区左侧：观看人数 */
+.tile .tile-online {
+    position: absolute;
+    bottom: 10px;
+    right: 92px;  /* 在 res 徽章左边 */
+    padding: 4px 9px;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 71, 87, 0.78);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    border-radius: 6px;
+    box-shadow: 0 2px 10px rgba(255, 71, 87, 0.28);
+    letter-spacing: -0.01em;
+    z-index: 2;
 }
 
 .tile .tile-qn {
